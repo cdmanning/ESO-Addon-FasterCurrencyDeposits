@@ -1,4 +1,4 @@
-# ESO-Addon-FasterCurrencyDepositseposits
+# ESO-Addon-FasterCurrencyDeposits
 An Elder Scrolls Online add-on that ...
 
 
