@@ -15,11 +15,11 @@ Tired of manually clicking through multiple menus and typing in amounts just to 
 * **Chat Summary:** Prints a deposit summary to your chat detailing exactly how much of each currency was safely locked away.
 
 ## 🛠️ Installation & Dependencies
-FasterCurrencyDeposits can be installed manually from Github[3], [ESOUI][1] or the [Minion Addon Manager][2].
+FasterCurrencyDeposits can be installed manually from [Github][3], [ESOUI][1] or the [Minion Addon Manager][2].
 
 ### Required Libraries
 To access the configuration panel, you must install the following dependency:
-* `LibAddonMenu-2.0` (Available via Minion[2] or ESOUI[1])
+* `LibAddonMenu-2.0` (Available via [Minion][2] or [ESOUI][1])
 
 ### Installing manually
 To install manually,
