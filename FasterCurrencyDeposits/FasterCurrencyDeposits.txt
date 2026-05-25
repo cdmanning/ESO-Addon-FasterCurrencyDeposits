@@ -1,0 +1,10 @@
+## Title: Faster Currency Deposits
+## Author: Revel
+## Version: 1.0.0
+## AddOnVersion: 100
+## APIVersion: 101049 101050
+## Description: Quickly deposit all selected currencies into your personal bank.
+## SavedVariables: FasterCurrencyDeposits_SV
+## DependsOn: LibAddonMenu-2.0
+
+FasterCurrencyDeposits.lua
