@@ -60,4 +60,4 @@ Contributions, bug reports, and feature requests are welcome! Please read our [C
 [1]: https://esoui.com/
 [2]: https://minion.mmoui.com/
 [3]: https://github.com/cdmanning/ESO-Addon-FasterCurrencyDeposits/releases
-[4]: https://esoui.com/
+[4]: https://www.esoui.com/downloads/info4594-FasterCurrencyDeposits.html
