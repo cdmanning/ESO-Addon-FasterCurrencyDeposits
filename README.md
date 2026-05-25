@@ -35,7 +35,7 @@ To install manually,
 ### Installing from ESOUI
 To install from ESOUI,
 
-1. Navigate to the FasterCurrencyDeposits page on [ESOUI][4]
+1. Navigate to the [FasterCurrencyDeposits][4] page on ESOUI
 2. Press the big "Download" button
 3. Extract the downloaded `FasterCurrencyDeposits.zip` folder
 4. Open the unzipped folder and copy the FasterCurrencyDeposits folder
