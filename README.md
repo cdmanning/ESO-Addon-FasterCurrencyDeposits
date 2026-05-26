@@ -13,6 +13,7 @@ Tired of manually clicking through multiple menus and typing in amounts just to 
   * 📜 Writ Vouchers
 * **Granular Control:** Choose exactly which currencies to automate and which ones to keep on your character.
 * **Chat Summary:** Prints a deposit summary to your chat detailing exactly how much of each currency was safely locked away.
+* **Reserve Thresholds** Specify the minimum amount of each currency you want to keep in your inventory.
 
 ## 🛠️ Installation & Dependencies
 FasterCurrencyDeposits can be installed manually from [Github][3], [ESOUI][1] or the [Minion Addon Manager][2].

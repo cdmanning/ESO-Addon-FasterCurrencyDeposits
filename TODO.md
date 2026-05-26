@@ -1,12 +1,9 @@
 ## 🛠️ In Progress
 - [ ] [FEAT] Add `Gamepad Mode Support` for keybinds and interface hooks for users not using the standard desktop keyboard.
-- [ ] [FEAT] Introduce sliders in the settings page for users to specify the minimum amount of currency to withhold from deposits.  
 - [ ] [UX] Move text strings into a translation framework to support German (`de`), French (`fr`), and Japanese (`jp`) clients.
 - [ ] [FEAT] Implement basic gold depositing specifically for Guild Bank transactions when permissions allow.
 
 ## 🧪 Testing
-- [x] [TEST] Add enable debugging option to the Addon settings page.
-- [x] [TEST] Add debug checks throughout code for in-game debugging.
 
 ## ✅ Completed
 - [x] [FEAT] Implement Addon master on/off switch.
@@ -14,6 +11,9 @@
 - [x] [FEAT] Add `Auto Deposit` option to settings page alongside functionality. 
 - [x] [UI] Implement Button injection into the bank deposits screen.  
 - [x] [UX] Add `Deposit Summary` option to the settings page alongside functionality.
+- [x] [FEAT] Introduce fields in the settings page for users to specify the minimum amount of currency to withhold from deposits.  
+- [x] [TEST] Add enable debugging option to the Addon settings page.
+- [x] [TEST] Add debug checks throughout code for in-game debugging.
 
 ---
 

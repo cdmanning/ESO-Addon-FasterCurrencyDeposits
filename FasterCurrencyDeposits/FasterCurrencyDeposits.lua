@@ -1,6 +1,6 @@
 FasterCurrencyDeposits = FasterCurrencyDeposits or {}
 FasterCurrencyDeposits.name = "FasterCurrencyDeposits"
-FasterCurrencyDeposits.version = "1.0.0"
+FasterCurrencyDeposits.version = "1.0.2"
 FasterCurrencyDeposits.buttonCreated = false
 
 local supportedCurrencies = {
@@ -38,6 +38,12 @@ local defaults = {
 		alliance = false,
 		writ = false,
 	},
+	withholdAmounts = {
+		gold = "0",
+		telvar = "0",
+		alliance = "0",
+		writ = "0",
+	},
 }
 
 function FasterCurrencyDeposits:Debug(message)
@@ -46,16 +52,23 @@ function FasterCurrencyDeposits:Debug(message)
 	end
 end
 
-function FasterCurrencyDeposits:DepositCurrency(currencyType, currencyName)
+function FasterCurrencyDeposits:DepositCurrency(currencyType, currencyName, withholdAmount)
 	local amount = GetCarriedCurrencyAmount(currencyType)
 
 	if amount and amount > 0 then
-		DepositCurrencyIntoBank(currencyType, amount)
+		local depositAmount = amount - withholdAmount
 
-		self:Debug("Deposited " .. tostring(amount) .. " " .. tostring(currencyName))
+		if depositAmount <= 0 then
+			self:Debug("Skipping " .. tostring(currencyName) .. " (Inventory within withhold threshold).")
+			return nil
+		end
+
+		DepositCurrencyIntoBank(currencyType, depositAmount)
+
+		self:Debug("Deposited " .. tostring(depositAmount) .. " " .. tostring(currencyName))
 
 		return {
-			amount = amount,
+			amount = depositAmount,
 			currencyType = currencyType,
 			currencyName = currencyName,
 		}
@@ -93,7 +106,8 @@ function FasterCurrencyDeposits:ExecuteDeposits()
 	for _, currencyData in ipairs(supportedCurrencies) do
 		local enabled = self.savedVars.depositCurrencies[currencyData.key]
 		if enabled then
-			local result = self:DepositCurrency(currencyData.currencyType, currencyData.name)
+			local withhold = tonumber(self.savedVars.withholdAmounts[currencyData.key]) or 0
+			local result = self:DepositCurrency(currencyData.currencyType, currencyData.name, withhold)
 			if result then
 				table.insert(depositedResults, result)
 			end
@@ -255,9 +269,9 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 
 	LAM2:RegisterAddonPanel("FasterCurrencyDepositsOptions", panelData)
 
-    local function IsAddonDisabled()
-        return not self.savedVars.enabled
-    end
+	local function IsAddonDisabled()
+		return not self.savedVars.enabled
+	end
 
 	local optionsTable = {
 		{
@@ -274,7 +288,7 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 		{
 			type = "checkbox",
 			name = "Auto Deposit",
-            disabled = IsAddonDisabled,
+			disabled = IsAddonDisabled,
 			tooltip = "Automatically deposits selected currencies.",
 			default = defaults.autoDeposit,
 			getFunc = function()
@@ -287,7 +301,7 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 		{
 			type = "checkbox",
 			name = "Show Deposit Summary",
-            disabled = IsAddonDisabled,
+			disabled = IsAddonDisabled,
 			tooltip = "Displays a chat summary of deposited currencies.",
 			default = defaults.showSummary,
 			getFunc = function()
@@ -304,7 +318,7 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 		{
 			type = "checkbox",
 			name = "Deposit Gold",
-            disabled = IsAddonDisabled,
+			disabled = IsAddonDisabled,
 			default = defaults.depositCurrencies.gold,
 			getFunc = function()
 				return self.savedVars.depositCurrencies.gold
@@ -317,7 +331,7 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 		{
 			type = "checkbox",
 			name = "Deposit Tel Var Stones",
-            disabled = IsAddonDisabled,
+			disabled = IsAddonDisabled,
 			default = defaults.depositCurrencies.telvar,
 			getFunc = function()
 				return self.savedVars.depositCurrencies.telvar
@@ -330,7 +344,7 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 		{
 			type = "checkbox",
 			name = "Deposit Alliance Points",
-            disabled = IsAddonDisabled,
+			disabled = IsAddonDisabled,
 			default = defaults.depositCurrencies.alliance,
 			getFunc = function()
 				return self.savedVars.depositCurrencies.alliance
@@ -343,7 +357,7 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 		{
 			type = "checkbox",
 			name = "Deposit Writ Vouchers",
-            disabled = IsAddonDisabled,
+			disabled = IsAddonDisabled,
 			default = defaults.depositCurrencies.writ,
 			getFunc = function()
 				return self.savedVars.depositCurrencies.writ
@@ -351,6 +365,66 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			setFunc = function(value)
 				self.savedVars.depositCurrencies.writ = value
 				self:UpdateButtonText()
+			end,
+		},
+		{
+			type = "header",
+			name = "Minimum Inventory Reserves",
+		},
+		{
+			type = "description",
+			text = "Specify the minimum amount of currency to keep in your inventory.",
+		},
+		{
+			type = "editbox",
+			name = "Gold to Withhold",
+			disabled = IsAddonDisabled,
+			isNumeric = true,
+			default = defaults.withholdAmounts.gold,
+			getFunc = function()
+				return self.savedVars.withholdAmounts.gold
+			end,
+			setFunc = function(value)
+				self.savedVars.withholdAmounts.gold = value
+			end,
+		},
+		{
+			type = "editbox",
+			name = "Tel Var Stones to Withhold",
+			disabled = IsAddonDisabled,
+			isNumeric = true,
+			default = defaults.withholdAmounts.telvar,
+			getFunc = function()
+				return self.savedVars.withholdAmounts.telvar
+			end,
+			setFunc = function(value)
+				self.savedVars.withholdAmounts.telvar = value
+			end,
+		},
+		{
+			type = "editbox",
+			name = "Alliance Points to Withhold",
+			disabled = IsAddonDisabled,
+			isNumeric = true,
+			default = defaults.withholdAmounts.alliance,
+			getFunc = function()
+				return self.savedVars.withholdAmounts.alliance
+			end,
+			setFunc = function(value)
+				self.savedVars.withholdAmounts.alliance = value
+			end,
+		},
+		{
+			type = "editbox",
+			name = "Writ Vouchers to Withhold",
+			disabled = IsAddonDisabled,
+			isNumeric = true,
+			default = defaults.withholdAmounts.writ,
+			getFunc = function()
+				return self.savedVars.withholdAmounts.writ
+			end,
+			setFunc = function(value)
+				self.savedVars.withholdAmounts.writ = value
 			end,
 		},
 		{
@@ -373,10 +447,7 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 	LAM2:RegisterOptionControls("FasterCurrencyDepositsOptions", optionsTable)
 end
 
-
-
 function FasterCurrencyDeposits.OnAddonLoaded(eventCode, addonName)
-
 	if addonName ~= FasterCurrencyDeposits.name then
 		return
 	end
@@ -390,7 +461,7 @@ function FasterCurrencyDeposits.OnAddonLoaded(eventCode, addonName)
 
 	FasterCurrencyDeposits:CreateSettingsMenu()
 
-    FasterCurrencyDeposits:Debug("[Faster Currency Deposits] Loaded.")
+	FasterCurrencyDeposits:Debug("[Faster Currency Deposits] Loaded.")
 end
 
 EVENT_MANAGER:RegisterForEvent(FasterCurrencyDeposits.name, EVENT_ADD_ON_LOADED, FasterCurrencyDeposits.OnAddonLoaded)
