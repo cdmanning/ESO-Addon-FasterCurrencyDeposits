@@ -1,6 +1,6 @@
-FasterCurrencyDeposits = FasterCurrencyDeposits or {}
+local FasterCurrencyDeposits = {}
 FasterCurrencyDeposits.name = "FasterCurrencyDeposits"
-FasterCurrencyDeposits.version = "1.0.2"
+FasterCurrencyDeposits.version = "1.0.3"
 FasterCurrencyDeposits.buttonCreated = false
 
 local supportedCurrencies = {
@@ -47,7 +47,7 @@ local defaults = {
 }
 
 function FasterCurrencyDeposits:Debug(message)
-	if self.savedVars.debug then
+	if FasterCurrencyDeposits.savedVars.debug then
 		d("[Faster Currency] " .. tostring(message))
 	end
 end
@@ -59,13 +59,13 @@ function FasterCurrencyDeposits:DepositCurrency(currencyType, currencyName, with
 		local depositAmount = amount - withholdAmount
 
 		if depositAmount <= 0 then
-			self:Debug("Skipping " .. tostring(currencyName) .. " (Inventory within withhold threshold).")
+			FasterCurrencyDeposits:Debug("Skipping " .. tostring(currencyName) .. " (Inventory within withhold threshold).")
 			return nil
 		end
 
 		DepositCurrencyIntoBank(currencyType, depositAmount)
 
-		self:Debug("Deposited " .. tostring(depositAmount) .. " " .. tostring(currencyName))
+		FasterCurrencyDeposits:Debug("Deposited " .. tostring(depositAmount) .. " " .. tostring(currencyName))
 
 		return {
 			amount = depositAmount,
@@ -74,13 +74,13 @@ function FasterCurrencyDeposits:DepositCurrency(currencyType, currencyName, with
 		}
 	end
 
-	self:Debug("No " .. tostring(currencyName) .. " available.")
+	FasterCurrencyDeposits:Debug("No " .. tostring(currencyName) .. " available.")
 
 	return nil
 end
 
 function FasterCurrencyDeposits:PrintDepositSummary(results)
-	if not self.savedVars.showSummary then
+	if not FasterCurrencyDeposits.savedVars.showSummary then
 		return
 	end
 
@@ -98,16 +98,16 @@ function FasterCurrencyDeposits:PrintDepositSummary(results)
 end
 
 function FasterCurrencyDeposits:ExecuteDeposits()
-	if not self.savedVars.enabled then
+	if not FasterCurrencyDeposits.savedVars.enabled then
 		return
 	end
 
 	local depositedResults = {}
 	for _, currencyData in ipairs(supportedCurrencies) do
-		local enabled = self.savedVars.depositCurrencies[currencyData.key]
+		local enabled = FasterCurrencyDeposits.savedVars.depositCurrencies[currencyData.key]
 		if enabled then
-			local withhold = tonumber(self.savedVars.withholdAmounts[currencyData.key]) or 0
-			local result = self:DepositCurrency(currencyData.currencyType, currencyData.name, withhold)
+			local withhold = tonumber(FasterCurrencyDeposits.savedVars.withholdAmounts[currencyData.key]) or 0
+			local result = FasterCurrencyDeposits:DepositCurrency(currencyData.currencyType, currencyData.name, withhold)
 			if result then
 				table.insert(depositedResults, result)
 			end
@@ -115,11 +115,11 @@ function FasterCurrencyDeposits:ExecuteDeposits()
 	end
 
 	if #depositedResults <= 0 then
-		self:Debug("Nothing to deposit.")
+		FasterCurrencyDeposits:Debug("Nothing to deposit.")
 		return
 	end
 
-	self:PrintDepositSummary(depositedResults)
+	FasterCurrencyDeposits:PrintDepositSummary(depositedResults)
 
 	zo_callLater(function()
 		if BANKCurrencyTransferDialogCancel then
@@ -133,7 +133,7 @@ function FasterCurrencyDeposits:GetDepositButtonText()
 	local selected = {}
 
 	for _, currencyData in ipairs(supportedCurrencies) do
-		if self.savedVars.depositCurrencies[currencyData.key] then
+		if FasterCurrencyDeposits.savedVars.depositCurrencies[currencyData.key] then
 			table.insert(selected, currencyData.name)
 		end
 	end
@@ -150,15 +150,15 @@ function FasterCurrencyDeposits:GetDepositButtonText()
 end
 
 function FasterCurrencyDeposits:UpdateButtonText()
-	if not self.buttonLabel then
+	if not FasterCurrencyDeposits.buttonLabel then
 		return
 	end
 
-	self.buttonLabel:SetText(self:GetDepositButtonText())
+	FasterCurrencyDeposits.buttonLabel:SetText(FasterCurrencyDeposits:GetDepositButtonText())
 end
 
 function FasterCurrencyDeposits:CreateButton()
-	if self.buttonCreated then
+	if FasterCurrencyDeposits.buttonCreated then
 		return
 	end
 
@@ -196,12 +196,12 @@ function FasterCurrencyDeposits:CreateButton()
 	end)
 	button:SetHidden(true)
 
-	self.button = button
-	self.buttonLabel = label
-	self:UpdateButtonText()
-	self.buttonCreated = true
+	FasterCurrencyDeposits.button = button
+	FasterCurrencyDeposits.buttonLabel = label
+	FasterCurrencyDeposits:UpdateButtonText()
+	FasterCurrencyDeposits.buttonCreated = true
 
-	self:Debug("ESO-style button created.")
+	FasterCurrencyDeposits:Debug("ESO-style button created.")
 end
 
 function FasterCurrencyDeposits:IsDepositMode()
@@ -252,17 +252,13 @@ end
 
 function FasterCurrencyDeposits:CreateSettingsMenu()
 	local LAM2 = LibAddonMenu2
-	if not LAM2 then
-		d("[Faster Currency] LibAddonMenu-2.0 missing.")
-		return
-	end
 
 	local panelData = {
 		type = "panel",
 		name = "Faster Currency Deposits",
 		displayName = "Faster Currency Deposits",
 		author = "Revel",
-		version = self.version,
+		version = FasterCurrencyDeposits.version,
 		registerForRefresh = true,
 		registerForDefaults = true,
 	}
@@ -270,7 +266,7 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 	LAM2:RegisterAddonPanel("FasterCurrencyDepositsOptions", panelData)
 
 	local function IsAddonDisabled()
-		return not self.savedVars.enabled
+		return not FasterCurrencyDeposits.savedVars.enabled
 	end
 
 	local optionsTable = {
@@ -279,10 +275,10 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			name = "Enable Addon",
 			default = defaults.enabled,
 			getFunc = function()
-				return self.savedVars.enabled
+				return FasterCurrencyDeposits.savedVars.enabled
 			end,
 			setFunc = function(value)
-				self.savedVars.enabled = value
+				FasterCurrencyDeposits.savedVars.enabled = value
 			end,
 		},
 		{
@@ -292,10 +288,10 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			tooltip = "Automatically deposits selected currencies.",
 			default = defaults.autoDeposit,
 			getFunc = function()
-				return self.savedVars.autoDeposit
+				return FasterCurrencyDeposits.savedVars.autoDeposit
 			end,
 			setFunc = function(value)
-				self.savedVars.autoDeposit = value
+				FasterCurrencyDeposits.savedVars.autoDeposit = value
 			end,
 		},
 		{
@@ -305,10 +301,10 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			tooltip = "Displays a chat summary of deposited currencies.",
 			default = defaults.showSummary,
 			getFunc = function()
-				return self.savedVars.showSummary
+				return FasterCurrencyDeposits.savedVars.showSummary
 			end,
 			setFunc = function(value)
-				self.savedVars.showSummary = value
+				FasterCurrencyDeposits.savedVars.showSummary = value
 			end,
 		},
 		{
@@ -321,11 +317,11 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			disabled = IsAddonDisabled,
 			default = defaults.depositCurrencies.gold,
 			getFunc = function()
-				return self.savedVars.depositCurrencies.gold
+				return FasterCurrencyDeposits.savedVars.depositCurrencies.gold
 			end,
 			setFunc = function(value)
-				self.savedVars.depositCurrencies.gold = value
-				self:UpdateButtonText()
+				FasterCurrencyDeposits.savedVars.depositCurrencies.gold = value
+				FasterCurrencyDeposits:UpdateButtonText()
 			end,
 		},
 		{
@@ -334,11 +330,11 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			disabled = IsAddonDisabled,
 			default = defaults.depositCurrencies.telvar,
 			getFunc = function()
-				return self.savedVars.depositCurrencies.telvar
+				return FasterCurrencyDeposits.savedVars.depositCurrencies.telvar
 			end,
 			setFunc = function(value)
-				self.savedVars.depositCurrencies.telvar = value
-				self:UpdateButtonText()
+				FasterCurrencyDeposits.savedVars.depositCurrencies.telvar = value
+				FasterCurrencyDeposits:UpdateButtonText()
 			end,
 		},
 		{
@@ -347,11 +343,11 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			disabled = IsAddonDisabled,
 			default = defaults.depositCurrencies.alliance,
 			getFunc = function()
-				return self.savedVars.depositCurrencies.alliance
+				return FasterCurrencyDeposits.savedVars.depositCurrencies.alliance
 			end,
 			setFunc = function(value)
-				self.savedVars.depositCurrencies.alliance = value
-				self:UpdateButtonText()
+				FasterCurrencyDeposits.savedVars.depositCurrencies.alliance = value
+				FasterCurrencyDeposits:UpdateButtonText()
 			end,
 		},
 		{
@@ -360,11 +356,11 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			disabled = IsAddonDisabled,
 			default = defaults.depositCurrencies.writ,
 			getFunc = function()
-				return self.savedVars.depositCurrencies.writ
+				return FasterCurrencyDeposits.savedVars.depositCurrencies.writ
 			end,
 			setFunc = function(value)
-				self.savedVars.depositCurrencies.writ = value
-				self:UpdateButtonText()
+				FasterCurrencyDeposits.savedVars.depositCurrencies.writ = value
+				FasterCurrencyDeposits:UpdateButtonText()
 			end,
 		},
 		{
@@ -382,10 +378,10 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			isNumeric = true,
 			default = defaults.withholdAmounts.gold,
 			getFunc = function()
-				return self.savedVars.withholdAmounts.gold
+				return FasterCurrencyDeposits.savedVars.withholdAmounts.gold
 			end,
 			setFunc = function(value)
-				self.savedVars.withholdAmounts.gold = value
+				FasterCurrencyDeposits.savedVars.withholdAmounts.gold = value
 			end,
 		},
 		{
@@ -395,10 +391,10 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			isNumeric = true,
 			default = defaults.withholdAmounts.telvar,
 			getFunc = function()
-				return self.savedVars.withholdAmounts.telvar
+				return FasterCurrencyDeposits.savedVars.withholdAmounts.telvar
 			end,
 			setFunc = function(value)
-				self.savedVars.withholdAmounts.telvar = value
+				FasterCurrencyDeposits.savedVars.withholdAmounts.telvar = value
 			end,
 		},
 		{
@@ -408,10 +404,10 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			isNumeric = true,
 			default = defaults.withholdAmounts.alliance,
 			getFunc = function()
-				return self.savedVars.withholdAmounts.alliance
+				return FasterCurrencyDeposits.savedVars.withholdAmounts.alliance
 			end,
 			setFunc = function(value)
-				self.savedVars.withholdAmounts.alliance = value
+				FasterCurrencyDeposits.savedVars.withholdAmounts.alliance = value
 			end,
 		},
 		{
@@ -421,10 +417,10 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			isNumeric = true,
 			default = defaults.withholdAmounts.writ,
 			getFunc = function()
-				return self.savedVars.withholdAmounts.writ
+				return FasterCurrencyDeposits.savedVars.withholdAmounts.writ
 			end,
 			setFunc = function(value)
-				self.savedVars.withholdAmounts.writ = value
+				FasterCurrencyDeposits.savedVars.withholdAmounts.writ = value
 			end,
 		},
 		{
@@ -436,10 +432,10 @@ function FasterCurrencyDeposits:CreateSettingsMenu()
 			name = "Enable Debug Logging",
 			default = defaults.debug,
 			getFunc = function()
-				return self.savedVars.debug
+				return FasterCurrencyDeposits.savedVars.debug
 			end,
 			setFunc = function(value)
-				self.savedVars.debug = value
+				FasterCurrencyDeposits.savedVars.debug = value
 			end,
 		},
 	}
@@ -454,7 +450,7 @@ function FasterCurrencyDeposits.OnAddonLoaded(eventCode, addonName)
 
 	EVENT_MANAGER:UnregisterForEvent(FasterCurrencyDeposits.name, EVENT_ADD_ON_LOADED)
 
-	FasterCurrencyDeposits.savedVars = ZO_SavedVars:NewAccountWide("FasterCurrencyDeposits_SV", 1, nil, defaults)
+	FasterCurrencyDeposits.savedVars = ZO_SavedVars:NewAccountWide("FasterCurrencyDeposits_SV", 1, GetWorldName(), defaults)
 
 	ZO_PreHookHandler(BANKCurrencyTransferDialog, "OnEffectivelyShown", FasterCurrencyDeposits.OnDialogShown)
 	ZO_PreHookHandler(BANKCurrencyTransferDialog, "OnEffectivelyHidden", FasterCurrencyDeposits.OnDialogHidden)
